@@ -1,10 +1,9 @@
 package cc1101
 
+// PATRABLE & FIFO's
 const (
-	READ_SINGLE_BYTE  = 0x80
-	READ_BURST        = 0xC0
-	WRITE_SINGLE_BYTE = 0x00
-	WRITE_BURST       = 0x40
+	reg_PATABLE = 0x3E // Power amplifier table
+	reg_FIFO    = 0x3F // FIFO access
 )
 
 // Configuration registers
@@ -93,10 +92,6 @@ const (
 	reg_SFTX    = 0x3B // Flush the TX FIFO buffer. Only issue SFTX in IDLE or TXFIFO_UNDERFLOW states.
 	reg_SWORRST = 0x3C // Reset real time clock to Event1 value.
 	reg_SNOP    = 0x3D // No operation. May be used to get access to the chip status byte.
-
-	reg_PATABLE = 0x3E // PATABLE
-	reg_TXFIFO  = 0x3F // TXFIFO
-	reg_RXFIFO  = 0x3F // RXFIFO
 )
 
 // Status Registers
