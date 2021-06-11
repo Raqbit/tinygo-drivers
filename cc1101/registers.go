@@ -6,7 +6,7 @@ const (
 	reg_FIFO    = 0x3F // FIFO access
 )
 
-// Configuration registers
+// Configuration registers (read/write)
 const (
 	reg_IOCFG2   = 0x00 // GDO2 Output Pin Configuration
 	reg_IOCFG1   = 0x01 // GDO1 Output Pin Configuration
@@ -62,27 +62,31 @@ const (
 
 // Command Strobe Registers
 const (
-	reg_SRES = 0x30 // Reset chip
+	// Reset chip
+	reg_SRES = 0x30
 
 	// Enable and calibrate frequency synthesizer (if MCSM0.FS_AUTOCAL=1).
 	// If in RX (with CCA): Go to a wait state where only the synthesizer
 	// is running (for quick RX / TX turnaround).
 	reg_SFSTXON = 0x31
 
-	reg_SXOFF = 0x32 // Turn off crystal oscillator.
+	// Turn off crystal oscillator.
+	reg_SXOFF = 0x32
 
 	// Calibrate frequency synthesizer and turn it off.
 	// SCAL can be strobed from IDLE mode without setting manual calibration mode.
 	reg_SCAL = 0x33
 
-	reg_SRX = 0x34 // Enable RX. Perform calibration first if coming from IDLE and MCSM0.FS_AUTOCAL=1.
+	// Enable RX. Perform calibration first if coming from IDLE and MCSM0.FS_AUTOCAL=1.
+	reg_SRX = 0x34
 
 	// In IDLE state: Enable TX. Perform calibration first
 	// if MCSM0.FS_AUTOCAL=1.
 	// If in RX state and CCA is enabled: Only go to TX if channel is clear.
 	reg_STX = 0x35
 
-	reg_SIDLE = 0x36 // Exit RX / TX, turn off frequency synthesizer and exit Wake-On-Radio mode if applicable.
+	// Exit RX / TX, turn off frequency synthesizer and exit Wake-On-Radio mode if applicable.
+	reg_SIDLE = 0x36
 
 	// Start automatic RX polling sequence (Wake-on-Radio) as described in Section 19.5 if WORCTRL.RC_PD=0.
 	reg_SWOR = 0x38
@@ -94,7 +98,9 @@ const (
 	reg_SNOP    = 0x3D // No operation. May be used to get access to the chip status byte.
 )
 
-// Status Registers
+// Status Registers (read-only)
+// These are only accessible through burst-mode, which is why
+// the bit is already set in the addresses
 const (
 	reg_PARTNUM        = 0xF0 // Chip ID
 	reg_VERSION        = 0xF1 // Chip ID
