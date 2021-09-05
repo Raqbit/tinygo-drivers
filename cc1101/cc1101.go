@@ -123,17 +123,19 @@ func (d Device) Configure(freq, dr, freqDev, rxBw float32, power int8, preambleL
 }
 
 func (d Device) cSelect() {
-	d.cSelect()
+	d.cs.Low()
 }
 
 func (d Device) cDeselect() {
-	d.cDeselect()
+	d.cs.High()
 }
 
 // reset executes a manual power-up sequence to get the
 // CC1101 into a known state, for instance when the
 // power-on-reset did not function properly because the
 // power supply did not comply to given specifications.
+//
+// See 19.1.2 "Manual Reset" on page 51 of the datasheet.
 func (d Device) reset() {
 	d.cDeselect()
 	time.Sleep(time.Microsecond * 5)
@@ -149,7 +151,7 @@ func (d Device) reset() {
 
 	d.cDeselect()
 
-	// TODO: set registers
+	// TODO: set register defaults?
 }
 
 // waitSDO waits until the SDO SPI pin goes low,
@@ -329,7 +331,7 @@ func (d Device) SetOutputPower(power int8) error {
 
 	// Table with values for PATABLE registers
 	// the configured frequency is used to get the column,
-	// the given power is used to get the the row
+	// the given power is used to get the row
 	//
 	// Values from Table 39 in datasheet
 	paTable := [][]uint8{
@@ -353,7 +355,7 @@ func (d Device) SetOutputPower(power int8) error {
 		paValues := [2]uint8{0x00, rawPower}
 		err = d.burstWriteRegister(reg_PATABLE, paValues[:])
 	} else {
-		// Frequency modulation, use full power when transmitting
+		// Frequency modulation, use the full power when transmitting
 		err = d.writeRegister(reg_PATABLE, rawPower)
 	}
 
@@ -399,7 +401,7 @@ func (d Device) SetRxBandwidth(bw float32) error {
 	for e := 3; e >= 0; e-- {
 		for m := 3; m >= 0; m-- {
 			point := (crystalFreq * 1000000.0) / (8 * (m + 4) * (1 << e))
-			if (math.Abs(float64(bw)*1000.0) - point) <= 1000 {
+			if (math.Abs(float64(bw)*1000.0) - float64(point)) <= 1000 {
 				// set Rx channel filter bandwidth
 				var value = uint8((e << 6) | (m << 4))
 
@@ -586,16 +588,16 @@ func (d Device) EnableSyncWordFiltering(maxErrBits uint8, requireCarrierSense bo
 // An approximation of the formula on page 35 of CC1101 data sheet
 // Taken from https://github.com/jgromes/RadioLib/blob/251dd438a028167895b3cda35f107da90d9fc1c7/src/modules/CC1101/CC1101.cpp#L903
 func getExpMant(target float32, mantOffset uint16, divExp uint8, expMax int8) (exp uint8, mant uint8) {
-	origin := (float32(mantOffset) * float32(crystalFreq) * 1000000.0) / (1 << divExp)
+	origin := (float32(mantOffset) * crystalFreq * 1000000.0) / float32(uint32(1)<<divExp)
 	for e := expMax; e >= 0; e-- {
-		intervalStart := (1 << e) * origin
+		intervalStart := float32(uint32(1)<<e) * origin
 
 		if target >= intervalStart {
 			exp = uint8(e)
 
-			stepSize := intervalStart / mantOffset
+			stepSize := intervalStart / float32(mantOffset)
 
-			mant = (target - intervalStart) / stepSize
+			mant = uint8((target - intervalStart) / stepSize)
 			return
 		}
 	}
