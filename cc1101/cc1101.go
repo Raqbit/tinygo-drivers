@@ -229,8 +229,13 @@ func (d Device) writePartialRegister(addr, value, msb, lsb uint8) error {
 		return err
 	}
 
-	// Mask for bits we want to write
-	var mask uint8 = ^((0b11111111 << (msb + 1)) | (0b11111111 >> (8 - lsb)))
+	// msb = 5, lsb = 3. mask=0b00111000
+
+	// Creates amount of bits between lsb & msb
+	mask := shiftLeft(1, int(msb-lsb+1)) - 1
+
+	// Shifts bits by lsb, creating the mask we want
+	mask = shiftLeft(mask, int(lsb))
 
 	// Create new register value from current & new with mask
 	newValue := (curr & ^mask) | (value & mask)
@@ -603,4 +608,15 @@ func getExpMant(target float32, mantOffset uint16, divExp uint8, expMax int8) (e
 	}
 
 	return
+}
+
+// shiftLeft shifts left by the amount specified.
+// The AVR backend for LLVM does not like shifts by variables,
+// which is why this is neccessary.
+func shiftLeft(val uint8, amount int) uint8 {
+	for i := 0; i < amount; i++ {
+		val <<= 1
+	}
+
+	return val
 }
